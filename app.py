@@ -1,21 +1,42 @@
+# ==========================================================
+# PERSONAL EXPENSE TRACKER
+# Login + Signup + Expense Management
+# ==========================================================
+
+
+# 1. IMPORT LIBRARIES
 
 import streamlit as st
 import sqlite3
 import hashlib
 import pandas as pd
+import base64
+from pathlib import Path
 
-# ---------------- PAGE SETTINGS ----------------
+
+# 2. PAGE CONFIGURATION
+# This must be the first Streamlit command.
+
 st.set_page_config(
     page_title="Personal Expense Tracker",
-    page_icon="💜",
+    page_icon="💰",
     layout="wide"
 )
 
-DB_NAME = "expenses.db"
 
-# ---------------- DATABASE SETUP ----------------
-def setup_database():
+# 3. FILE PATHS
+
+DB_NAME = "expenses.db"
+BG_IMAGE = Path("background.png")
+
+
+# 4. DATABASE CONNECTION AND TABLE CREATION
+
+def create_database():
+
     with sqlite3.connect(DB_NAME) as conn:
+
+        # Users table
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +45,7 @@ def setup_database():
             )
         """)
 
+        # Expenses table
         conn.execute("""
             CREATE TABLE IF NOT EXISTS expenses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,136 +57,162 @@ def setup_database():
             )
         """)
 
-setup_database()
 
-# ---------------- CUSTOM DESIGN ----------------
-# ---------------- CUSTOM DESIGN ----------------
-st.markdown("""
+create_database()
+
+
+# 5. PASSWORD HASHING
+
+def hash_password(password):
+
+    return hashlib.sha256(
+        password.encode()
+    ).hexdigest()
+
+
+# 6. BACKGROUND IMAGE AND CUSTOM CSS
+
+if BG_IMAGE.exists():
+
+    with open(BG_IMAGE, "rb") as image_file:
+
+        image_data = base64.b64encode(
+            image_file.read()
+        ).decode()
+
+    background_style = f"""
+        background-image:
+        linear-gradient(
+            rgba(15, 10, 15, 0.68),
+            rgba(15, 10, 15, 0.78)
+        ),
+        url("data:image/png;base64,{image_data}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    """
+
+else:
+
+    background_style = "background: #171019;"
+
+
+st.markdown(f"""
 <style>
 
-.stApp,
-[data-testid="stAppViewContainer"] {
-    background: linear-gradient(
-        135deg,
-        #121116 0%,
-        #1B1922 55%,
-        #24212D 100%
-    ) !important;
-    color: #F3EEF8 !important;
-}
+/* Main background */
 
-[data-testid="stHeader"] {
-    background: transparent !important;
-}
+.stApp {{
+    {background_style}
+}}
 
-[data-testid="stMain"] {
-    background: transparent !important;
-}
+/* Main text */
 
-h1, h2, h3 {
-    color: #D6C2F5 !important;
-}
+h1, h2, h3, p, label {{
+    color: #ffffff;
+}}
 
-p, label {
-    color: #E6DFEF !important;
-}
+/* Login and signup card */
 
-div[data-testid="stMetric"] {
-    background: #8B6B52 !important;
-    border-color:#B89A7D !important;
-    border: 1px solid #40344F !important;
+div[data-testid="stVerticalBlockBorderWrapper"] {{
+    background: rgba(35, 24, 39, 0.90);
+    border: 1px solid rgba(190, 130, 255, 0.35);
     border-radius: 18px;
-    padding: 22px;
-}
+    padding: 18px;
+    box-shadow: 0 0 20px rgba(150, 70, 220, 0.18);
+}}
 
-div[data-testid="stForm"] {
-    background: #1D1B24 !important;
-    border: 1px solid #40344F !important;
-    border-radius: 18px;
-    padding: 24px;
-}
+/* Input boxes */
 
-hr {
-    border-color: #40344F !important;
-}
-h1, h2, h3 {
-    color: #E5C3A2 !important;
-    font-weight: 750 !important;
-}
+.stTextInput input,
+.stNumberInput input,
+.stDateInput input {{
+    background-color: #38283b !important;
+    color: white !important;
+    border: 1px solid #8b5aa8 !important;
+    border-radius: 9px !important;
+}}
 
-p, label {
-    color: #F0E5D8 !important;
-}
+/* Select boxes */
 
+.stSelectbox div[data-baseweb="select"] > div {{
+    background-color: #38283b;
+    color: white;
+    border: 1px solid #8b5aa8;
+    border-radius: 9px;
+}}
 
-div.stButton > button,
-div.stFormSubmitButton > button {
-    background: linear-gradient(135deg, #78977A, #7651A8) !important;
-    color: #FFFFFF !important;
-    border: 1px solid #9CB69A !important;
-    border-radius: 12px !important;
-    min-height: 44px;
-    font-weight: 650;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-}
+/* Buttons */
 
-div.stButton > button:hover,
-div.stFormSubmitButton > button:hover {
-    background: linear-gradient(135deg, #91AD91, #78977A) !important;
-    color: #C06C91 !important;
-    border: 1px solid #B6CCB2 !important;
-    transform: translateY(-2px);
-}
-div.stButton > button:hover,
-div.stFormSubmitButton > button:hover {
-    background: #C49A75 !important;
-    color: #332923 !important;
-}
-
-div[data-testid="stMetric"] {
-    background: #49382F !important;
-    border: 1px solid #80634F;
-    border-radius: 18px;
-    padding: 22px;
-    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
-}
-
-div[data-testid="stMetricLabel"] {
-    color: #D7BDA6 !important;
-}
-
-div[data-testid="stMetricValue"] {
-    color: #F0D1AE !important;
-    font-weight: 800;
-}
-
-div[data-testid="stForm"] {
-    background: #3D3028 !important;
-    border: 1px solid #80634F;
-    border-radius: 18px;
-    padding: 24px;
-}
-
-div[data-baseweb="input"] > div,
-div[data-baseweb="select"] > div {
-    background: #F0E5D8 !important;
+.stButton button,
+.stFormSubmitButton button {{
+    background-color: #287a55;
+    color: white;
+    border: none;
     border-radius: 10px;
-    border-color: #C49A75 !important;
-}
+    padding: 9px 20px;
+    font-weight: bold;
+    transition: 0.3s;
+}}
 
-div[data-testid="stDataFrame"] {
-    border: 1px solid #80634F;
-    border-radius: 14px;
-    overflow: hidden;
-}
+/* Button hover */
 
-hr {
-    border-color: #80634F;
-}
+.stButton button:hover,
+.stFormSubmitButton button:hover {{
+    background-color: #9655c7;
+    color: white;
+    border: none;
+}}
+
+/* Radio buttons */
+
+.stRadio label {{
+    color: white !important;
+}}
+
+/* Checkbox */
+
+.stCheckbox label {{
+    color: white !important;
+}}
+
+/* Dataframe */
+
+div[data-testid="stDataFrame"] {{
+    background-color: rgba(30, 20, 35, 0.9);
+    border-radius: 12px;
+}}
+
+/* Tabs */
+
+.stTabs [data-baseweb="tab"] {{
+    color: white;
+}}
+
+.stTabs [aria-selected="true"] {{
+    color: #d9a5ff !important;
+}}
+
+/* Metric cards */
+
+div[data-testid="stMetric"] {{
+    background: rgba(55, 35, 60, 0.85);
+    padding: 15px;
+    border-radius: 12px;
+}}
+
+/* Divider */
+
+hr {{
+    border-color: #80558f;
+}}
+
 </style>
 """, unsafe_allow_html=True)
-# ---------------- SESSION STATE ----------------
+
+
+# 7. SESSION STATE
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -174,106 +222,205 @@ if "user_id" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-# ---------------- LOGIN / SIGNUP PAGE ----------------
+
+# 8. LOGIN AND SIGNUP PAGE
+
 if not st.session_state.logged_in:
 
-    st.title("💜 Welcome to Expense Tracker")
-    st.write("Your money, your records, your control.")
-    st.divider()
+    st.markdown(
+        "<h1 style='text-align:center;'>💰 Expense Tracker</h1>",
+        unsafe_allow_html=True
+    )
 
-    left, center, right = st.columns([1, 2, 1])
+    st.markdown(
+        "<p style='text-align:center;'>"
+        "Manage your money. Track your expenses."
+        "</p>",
+        unsafe_allow_html=True
+    )
 
-    with center:
-        choice = st.radio(
-            "Choose an option",
-            ["Login", "Sign Up"],
-            horizontal=True
-        )
+    # Center login card
 
-        username = st.text_input("Username")
-        password = st.text_input(
-            "Password",
-            type="password"
-        )
+    left, middle, right = st.columns(
+        [1, 1.4, 1]
+    )
 
-        if choice == "Sign Up":
-            if st.button("Create Account", use_container_width=True):
-                if not username.strip() or not password:
-                    st.warning("Enter username and password.")
-                elif len(password) < 6:
-                    st.warning("Password must be at least 6 characters.")
-                else:
-                    hashed_password = hashlib.sha256(
-                        password.encode()
-                    ).hexdigest()
+    with middle:
 
-                    try:
+        with st.container(border=True):
+
+            st.markdown(
+                "<h2 style='text-align:center;'>Welcome</h2>",
+                unsafe_allow_html=True
+            )
+
+            # Login / Signup tabs
+
+            login_tab, signup_tab = st.tabs(
+                ["🔐 Login", "📝 Sign Up"]
+            )
+
+            # LOGIN SECTION
+
+            with login_tab:
+
+                st.subheader("Login to your account")
+
+                login_username = st.text_input(
+                    "Username",
+                    key="login_username"
+                )
+
+                login_password = st.text_input(
+                    "Password",
+                    type="password",
+                    key="login_password"
+                )
+
+                if st.button(
+                    "Login",
+                    use_container_width=True
+                ):
+
+                    if login_username and login_password:
+
                         with sqlite3.connect(DB_NAME) as conn:
-                            conn.execute(
-                                """INSERT INTO users (username, password)
-                                   VALUES (?, ?)""",
-                                (username.strip(), hashed_password)
+
+                            result = conn.execute("""
+                                SELECT id, username
+                                FROM users
+                                WHERE username = ?
+                                AND password = ?
+                            """, (
+                                login_username,
+                                hash_password(login_password)
+                            )).fetchone()
+
+                        if result:
+
+                            st.session_state.logged_in = True
+                            st.session_state.user_id = result[0]
+                            st.session_state.username = result[1]
+
+                            st.success("Login successful!")
+
+                            st.rerun()
+
+                        else:
+
+                            st.error(
+                                "Invalid username or password."
                             )
-                        st.success("Account created! Now select Login.")
-                    except sqlite3.IntegrityError:
-                        st.error("This username already exists.")
 
-        else:
-            if st.button("Login", use_container_width=True):
-                if not username.strip() or not password:
-                    st.warning("Enter username and password.")
-                else:
-                    hashed_password = hashlib.sha256(
-                        password.encode()
-                    ).hexdigest()
-
-                    with sqlite3.connect(DB_NAME) as conn:
-                        user = conn.execute(
-                            """SELECT id, username FROM users
-                               WHERE username = ? AND password = ?""",
-                            (username.strip(), hashed_password)
-                        ).fetchone()
-
-                    if user:
-                        st.session_state.logged_in = True
-                        st.session_state.user_id = user[0]
-                        st.session_state.username = user[1]
-                        st.rerun()
                     else:
-                        st.error("Invalid username or password.")
 
-# ---------------- EXPENSE DASHBOARD ----------------
+                        st.warning(
+                            "Please enter username and password."
+                        )
+
+            # SIGNUP SECTION
+
+            with signup_tab:
+
+                st.subheader("Create a new account")
+
+                signup_username = st.text_input(
+                    "Choose Username",
+                    key="signup_username"
+                )
+
+                signup_password = st.text_input(
+                    "Create Password",
+                    type="password",
+                    key="signup_password"
+                )
+
+                confirm_password = st.text_input(
+                    "Confirm Password",
+                    type="password",
+                    key="confirm_password"
+                )
+
+                if st.button(
+                    "Create Account",
+                    use_container_width=True
+                ):
+
+                    if not signup_username or not signup_password:
+
+                        st.warning(
+                            "Please fill all required fields."
+                        )
+
+                    elif len(signup_password) < 6:
+
+                        st.warning(
+                            "Password must be at least 6 characters."
+                        )
+
+                    elif signup_password != confirm_password:
+
+                        st.error(
+                            "Passwords do not match."
+                        )
+
+                    else:
+
+                        try:
+
+                            with sqlite3.connect(DB_NAME) as conn:
+
+                                conn.execute("""
+                                    INSERT INTO users
+                                    (username, password)
+                                    VALUES (?, ?)
+                                """, (
+                                    signup_username,
+                                    hash_password(signup_password)
+                                ))
+
+                            st.success(
+                                "Account created! Now login."
+                            )
+
+                        except sqlite3.IntegrityError:
+
+                            st.error(
+                                "Username already exists. Try another."
+                            )
+
+
+# 9. EXPENSE TRACKER DASHBOARD
+
 else:
-    st.title("💜 Personal Expense Tracker")
-    st.write(f"Welcome, {st.session_state.username}!")
-    
-    if st.button("Logout"):
+
+    # Welcome heading
+
+    st.title("💰 Personal Expense Tracker")
+
+    st.write(
+        f"Welcome, **{st.session_state.username}**!"
+    )
+
+    # Logout button
+
+    if st.button("Logout 🚪"):
+
         st.session_state.logged_in = False
         st.session_state.user_id = None
         st.session_state.username = ""
+
         st.rerun()
 
     st.divider()
 
-    # Load only the current user's expenses
-    with sqlite3.connect(DB_NAME) as conn:
-        rows = conn.execute(
-            """SELECT id, amount, category, description, expense_date
-               FROM expenses
-               WHERE user_id = ?
-               ORDER BY expense_date DESC, id DESC""",
-            (st.session_state.user_id,)
-        ).fetchall()
 
-    df = pd.DataFrame(
-        rows,
-        columns=["ID", "Amount", "Category", "Description", "Date"]
-    )
+    # 10. ADD NEW EXPENSE
 
-    # ---------------- ADD EXPENSE ----------------
-    st.subheader("➕ Add a New Expense")
+    st.subheader("➕ Add New Expense")
 
-    with st.form("expense_form", clear_on_submit=True):
+    with st.form("expense_form"):
+
         amount = st.number_input(
             "Amount (₹)",
             min_value=0.0,
@@ -282,71 +429,190 @@ else:
 
         category = st.selectbox(
             "Category",
-            ["Food", "Travel", "Shopping", "Education",
-             "Bills", "Health", "Other"]
+            [
+                "Food",
+                "Travel",
+                "Shopping",
+                "Education",
+                "Bills",
+                "Health",
+                "Other"
+            ]
         )
 
-        description = st.text_input("Description")
-        expense_date = st.date_input("Expense Date")
+        description = st.text_input(
+            "Description"
+        )
 
-        submitted = st.form_submit_button("Add Expense")
+        expense_date = st.date_input(
+            "Expense Date"
+        )
 
-        if submitted:
+        submit_expense = st.form_submit_button(
+            "Add Expense"
+        )
+
+        if submit_expense:
+
             if amount <= 0:
-                st.warning("Enter an amount greater than zero.")
+
+                st.warning(
+                    "Please enter an amount greater than zero."
+                )
+
             else:
+
                 with sqlite3.connect(DB_NAME) as conn:
-                    conn.execute(
-                        """INSERT INTO expenses
-                           (user_id, amount, category, description, expense_date)
-                           VALUES (?, ?, ?, ?, ?)""",
+
+                    conn.execute("""
+                        INSERT INTO expenses
                         (
-                            st.session_state.user_id,
+                            user_id,
                             amount,
                             category,
-                            description.strip(),
-                            str(expense_date)
+                            description,
+                            expense_date
                         )
-                    )
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (
+                        st.session_state.user_id,
+                        amount,
+                        category,
+                        description,
+                        str(expense_date)
+                    ))
 
-                st.success("Expense added successfully!")
+                st.success(
+                    "Expense added successfully! 🎉"
+                )
+
                 st.rerun()
+
 
     st.divider()
 
-    # ---------------- SUMMARY ----------------
+
+    # 11. FETCH CURRENT USER EXPENSES
+
+    with sqlite3.connect(DB_NAME) as conn:
+
+        rows = conn.execute("""
+            SELECT
+                id,
+                amount,
+                category,
+                description,
+                expense_date
+            FROM expenses
+            WHERE user_id = ?
+            ORDER BY expense_date DESC, id DESC
+        """, (
+            st.session_state.user_id,
+        )).fetchall()
+
+
+    # 12. CONVERT DATA INTO DATAFRAME
+
+    df = pd.DataFrame(
+        rows,
+        columns=[
+            "ID",
+            "Amount",
+            "Category",
+            "Description",
+            "Date"
+        ]
+    )
+
+
+    # 13. SUMMARY
+
     st.subheader("📊 Expense Summary")
 
-    total = float(df["Amount"].sum()) if not df.empty else 0
-    count = len(df)
+    if not df.empty:
+
+        total_expense = df["Amount"].sum()
+
+        total_count = len(df)
+
+    else:
+
+        total_expense = 0
+        total_count = 0
 
     col1, col2 = st.columns(2)
-    col1.metric("Total Expenses", f"₹{total:,.2f}")
-    col2.metric("Number of Expenses", count)
 
-    # ---------------- CATEGORY CHART ----------------
+    with col1:
+
+        st.metric(
+            "💸 Total Expenses",
+            f"₹{total_expense:,.2f}"
+        )
+
+    with col2:
+
+        st.metric(
+            "📝 Number of Expenses",
+            total_count
+        )
+
+
+    st.divider()
+
+
+    # 14. CATEGORY-WISE CHART
+
+    st.subheader("📈 Category-wise Spending")
+
     if not df.empty:
-        st.subheader("📈 Category-wise Spending")
-        category_totals = df.groupby("Category")["Amount"].sum()
+
+        category_totals = (
+            df.groupby("Category")["Amount"].sum()
+        )
+
         st.bar_chart(category_totals)
 
-    # ---------------- EXPENSE HISTORY ----------------
+    else:
+
+        st.info(
+            "Add expenses to see your chart."
+        )
+
+
+    st.divider()
+
+
+    # 15. EXPENSE HISTORY
+
     st.subheader("📋 Expense History")
 
     if not df.empty:
-        display_df = df.drop(columns=["ID"]).rename(
-            columns={
-                "Amount": "Amount (₹)",
-                "Date": "Expense Date"
-            }
-        )
-        st.dataframe(display_df, use_container_width=True)
 
-        # ---------------- DELETE EXPENSE ----------------
+        display_df = df.drop(
+            columns=["ID"]
+        ).rename(columns={
+            "Amount": "Amount (₹)",
+            "Date": "Expense Date"
+        })
+
+        st.dataframe(
+            display_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+        # 16. DELETE EXPENSE
+
         st.subheader("🗑️ Delete an Expense")
 
         expense_options = {
-            f"₹{row[1]:,.2f} | {row[2]} | {row[4]} | {row[3]}": row[0]
+            (
+                f"₹{row[1]:,.2f} | "
+                f"{row[2]} | "
+                f"{row[4]} | "
+                f"{row[3] or 'No description'}"
+            ): row[0]
             for row in rows
         }
 
@@ -355,17 +621,44 @@ else:
             list(expense_options.keys())
         )
 
-        if st.button("Delete Selected Expense"):
+        if st.button("Delete Selected Expense 🗑️"):
+
+            selected_id = expense_options[
+                selected_expense
+            ]
+
             with sqlite3.connect(DB_NAME) as conn:
-                conn.execute(
-                    "DELETE FROM expenses WHERE id = ? AND user_id = ?",
-                    (
-                        expense_options[selected_expense],
-                        st.session_state.user_id
-                    )
-                )
-            st.success("Expense deleted.")
+
+                conn.execute("""
+                    DELETE FROM expenses
+                    WHERE id = ? AND user_id = ?
+                """, (
+                    selected_id,
+                    st.session_state.user_id
+                ))
+
+            st.success(
+                "Expense deleted successfully!"
+            )
+
             st.rerun()
 
     else:
-        st.info("No expenses added yet. Add your first expense above!")
+
+        st.info(
+            "No expenses added yet. Add your first expense!"
+        )
+
+
+    # 17. FOOTER
+
+    st.divider()
+
+    st.markdown(
+        """
+        <p style="text-align:center; color:#d9a5ff;">
+            💜 Track Smart • Save More • Grow More
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
