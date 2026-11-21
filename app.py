@@ -27,7 +27,7 @@ st.set_page_config(
 # 3. FILE PATHS
 
 DB_NAME = "expenses.db"
-BG_IMAGE = Path("background.png")
+BG_IMAGE = Path(__file__).parent / "Background.png"
 
 
 # 4. DATABASE CONNECTION AND TABLE CREATION
@@ -71,6 +71,9 @@ def hash_password(password):
 
 
 # 6. BACKGROUND IMAGE AND CUSTOM CSS
+# ==========================================================
+# 6. BACKGROUND IMAGE AND CUSTOM CSS
+# ==========================================================
 
 if BG_IMAGE.exists():
 
@@ -83,12 +86,14 @@ if BG_IMAGE.exists():
     background_style = f"""
         background-image:
         linear-gradient(
-            rgba(15, 10, 15, 0.68),
-            rgba(15, 10, 15, 0.78)
+            rgba(15, 10, 15, 0.18),
+            rgba(15, 10, 15, 0.28)
         ),
         url("data:image/png;base64,{image_data}");
+
         background-size: cover;
         background-position: center;
+        background-repeat: no-repeat;
         background-attachment: fixed;
     """
 
@@ -99,11 +104,20 @@ else:
 
 st.markdown(f"""
 <style>
+/* Remove white top header */
+
 
 /* Main background */
 
+
 .stApp {{
     {background_style}
+}}
+
+/* Main content transparent */
+
+[data-testid="stMain"] {{
+    background: transparent !important;
 }}
 
 /* Main text */
@@ -115,11 +129,12 @@ h1, h2, h3, p, label {{
 /* Login and signup card */
 
 div[data-testid="stVerticalBlockBorderWrapper"] {{
-    background: rgba(35, 24, 39, 0.90);
-    border: 1px solid rgba(190, 130, 255, 0.35);
+    background: rgba(35, 24, 39, 0.72);
+    border: 1px solid rgba(190, 130, 255, 0.45);
     border-radius: 18px;
     padding: 18px;
-    box-shadow: 0 0 20px rgba(150, 70, 220, 0.18);
+    box-shadow: 0 0 20px rgba(150, 70, 220, 0.22);
+    backdrop-filter: blur(3px);
 }}
 
 /* Input boxes */
@@ -662,3 +677,4 @@ else:
         """,
         unsafe_allow_html=True
     )
+    
