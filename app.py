@@ -3,7 +3,6 @@
 # Login + Signup + Expense Management
 # ==========================================================
 
-
 # 1. IMPORT LIBRARIES
 
 import streamlit as st
@@ -15,11 +14,10 @@ from pathlib import Path
 
 
 # 2. PAGE CONFIGURATION
-# This must be the first Streamlit command.
 
 st.set_page_config(
     page_title="Personal Expense Tracker",
-    page_icon="💰",
+    page_icon="💜",
     layout="wide"
 )
 
@@ -27,16 +25,19 @@ st.set_page_config(
 # 3. FILE PATHS
 
 DB_NAME = "expenses.db"
-BG_IMAGE = Path(__file__).parent / "Background.png"
+
+BG_IMAGE = Path("background.png")
+
+if not BG_IMAGE.exists():
+    BG_IMAGE = Path("Background.png")
 
 
-# 4. DATABASE CONNECTION AND TABLE CREATION
+# 4. DATABASE CREATION
 
 def create_database():
 
     with sqlite3.connect(DB_NAME) as conn:
 
-        # Users table
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +46,6 @@ def create_database():
             )
         """)
 
-        # Expenses table
         conn.execute("""
             CREATE TABLE IF NOT EXISTS expenses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,10 +70,7 @@ def hash_password(password):
     ).hexdigest()
 
 
-# 6. BACKGROUND IMAGE AND CUSTOM CSS
-# ==========================================================
-# 6. BACKGROUND IMAGE AND CUSTOM CSS
-# ==========================================================
+# 6. BACKGROUND IMAGE
 
 if BG_IMAGE.exists():
 
@@ -86,8 +83,8 @@ if BG_IMAGE.exists():
     background_style = f"""
         background-image:
         linear-gradient(
-            rgba(15, 10, 15, 0.18),
-            rgba(15, 10, 15, 0.28)
+            rgba(15, 10, 15, 0.55),
+            rgba(15, 10, 15, 0.72)
         ),
         url("data:image/png;base64,{image_data}");
 
@@ -102,131 +99,193 @@ else:
     background_style = "background: #171019;"
 
 
+# 7. CUSTOM CSS
+
 st.markdown(f"""
 <style>
-/* Remove white top header */
 
+/* Hide Streamlit Header */
 
-/* Main background */
+header[data-testid="stHeader"] {{
+    display: none !important;
+}}
 
+div[data-testid="stToolbar"] {{
+    display: none !important;
+}}
+
+div[data-testid="stDecoration"] {{
+    display: none !important;
+}}
+
+#MainMenu {{
+    visibility: hidden;
+}}
+
+/* Full Page Background */
 
 .stApp {{
     {background_style}
 }}
 
-/* Main content transparent */
-
-[data-testid="stMain"] {{
+div[data-testid="stAppViewContainer"] {{
     background: transparent !important;
 }}
 
-/* Main text */
-
-h1, h2, h3, p, label {{
-    color: #ffffff;
+div[data-testid="stMain"] {{
+    background: transparent !important;
 }}
 
-/* Login and signup card */
+section.main {{
+    background: transparent !important;
+}}
+
+section.main > div {{
+    padding-top: 1rem !important;
+}}
+
+/* Headings */
+
+h1, h2, h3 {{
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    opacity: 1 !important;
+    text-shadow: 2px 2px 8px #000000;
+}}
+
+/* Paragraph */
+
+.stMarkdown p {{
+    color: #F5F0FF !important;
+    text-shadow: 1px 1px 4px #000000;
+}}
+
+/* Login Signup Card */
 
 div[data-testid="stVerticalBlockBorderWrapper"] {{
-    background: rgba(35, 24, 39, 0.72);
-    border: 1px solid rgba(190, 130, 255, 0.45);
-    border-radius: 18px;
-    padding: 18px;
-    box-shadow: 0 0 20px rgba(150, 70, 220, 0.22);
-    backdrop-filter: blur(3px);
+    background: rgba(30, 20, 38, 0.82) !important;
+    border: 1px solid rgba(210, 165, 255, 0.55) !important;
+    border-radius: 20px !important;
+    padding: 18px !important;
+    box-shadow: 0 0 25px rgba(150,70,220,0.30);
+    backdrop-filter: blur(10px);
 }}
 
-/* Input boxes */
+/* Input Labels */
+
+label {{
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+}}
+
+/* Input Boxes */
 
 .stTextInput input,
 .stNumberInput input,
-.stDateInput input {{
-    background-color: #38283b !important;
-    color: white !important;
-    border: 1px solid #8b5aa8 !important;
-    border-radius: 9px !important;
+.stDateInput input,
+.stTextArea textarea {{
+    background-color: #38283F !important;
+    color: #FFFFFF !important;
+    border: 1px solid #B58ACD !important;
+    border-radius: 10px !important;
 }}
 
-/* Select boxes */
+.stTextInput input:focus,
+.stNumberInput input:focus {{
+    border: 1px solid #D9A5FF !important;
+    box-shadow: 0 0 8px rgba(217,165,255,0.5);
+}}
+
+/* Select Box */
 
 .stSelectbox div[data-baseweb="select"] > div {{
-    background-color: #38283b;
-    color: white;
-    border: 1px solid #8b5aa8;
-    border-radius: 9px;
+    background-color: #38283F !important;
+    color: #FFFFFF !important;
+    border: 1px solid #B58ACD !important;
+    border-radius: 10px !important;
 }}
 
 /* Buttons */
 
 .stButton button,
 .stFormSubmitButton button {{
-    background-color: #287a55;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 9px 20px;
-    font-weight: bold;
-    transition: 0.3s;
+    background-color: #287A55 !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px 20px !important;
+    font-weight: bold !important;
+    transition: all 0.3s ease !important;
 }}
 
-/* Button hover */
+/* Button Hover */
 
 .stButton button:hover,
 .stFormSubmitButton button:hover {{
-    background-color: #9655c7;
-    color: white;
-    border: none;
-}}
-
-/* Radio buttons */
-
-.stRadio label {{
+    background-color: #9655C7 !important;
     color: white !important;
-}}
-
-/* Checkbox */
-
-.stCheckbox label {{
-    color: white !important;
-}}
-
-/* Dataframe */
-
-div[data-testid="stDataFrame"] {{
-    background-color: rgba(30, 20, 35, 0.9);
-    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(190,120,255,0.5);
 }}
 
 /* Tabs */
 
 .stTabs [data-baseweb="tab"] {{
-    color: white;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
 }}
 
 .stTabs [aria-selected="true"] {{
-    color: #d9a5ff !important;
+    color: #E2B8FF !important;
 }}
 
-/* Metric cards */
+/* Radio and Checkbox */
+
+.stRadio label,
+.stCheckbox label {{
+    color: #FFFFFF !important;
+}}
+
+/* Metric Cards */
 
 div[data-testid="stMetric"] {{
-    background: rgba(55, 35, 60, 0.85);
-    padding: 15px;
+    background: rgba(55,35,65,0.88) !important;
+    padding: 18px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(190,130,255,0.35);
+}}
+
+div[data-testid="stMetricLabel"] {{
+    color: #E5D1F5 !important;
+}}
+
+div[data-testid="stMetricValue"] {{
+    color: #FFFFFF !important;
+}}
+
+/* Dataframe */
+
+div[data-testid="stDataFrame"] {{
+    background-color: rgba(30,20,35,0.9);
     border-radius: 12px;
 }}
 
 /* Divider */
 
 hr {{
-    border-color: #80558f;
+    border-color: #A477B8 !important;
+}}
+
+/* Footer */
+
+footer {{
+    visibility: hidden;
 }}
 
 </style>
 """, unsafe_allow_html=True)
 
 
-# 7. SESSION STATE
+# 8. SESSION STATE
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -238,38 +297,50 @@ if "username" not in st.session_state:
     st.session_state.username = ""
 
 
-# 8. LOGIN AND SIGNUP PAGE
+# 9. LOGIN AND SIGNUP PAGE
 
 if not st.session_state.logged_in:
 
-    st.markdown(
-        "<h1 style='text-align:center;'>💰 Expense Tracker</h1>",
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+        <h1 style="
+            text-align:center;
+            color:#FFFFFF;
+            font-size:38px;
+            font-weight:800;
+            text-shadow:2px 2px 10px #000000;
+        ">
+            💰 Personal Expense Tracker
+        </h1>
+    """, unsafe_allow_html=True)
 
-    st.markdown(
-        "<p style='text-align:center;'>"
-        "Manage your money. Track your expenses."
-        "</p>",
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+        <p style="
+            text-align:center;
+            color:#FFFFFF;
+            font-size:17px;
+            font-weight:600;
+            text-shadow:1px 1px 5px #000000;
+        ">
+            Manage your money. Track your expenses.
+        </p>
+    """, unsafe_allow_html=True)
 
-    # Center login card
-
-    left, middle, right = st.columns(
-        [1, 1.4, 1]
-    )
+    left, middle, right = st.columns([1, 1.4, 1])
 
     with middle:
 
         with st.container(border=True):
 
-            st.markdown(
-                "<h2 style='text-align:center;'>Welcome</h2>",
-                unsafe_allow_html=True
-            )
-
-            # Login / Signup tabs
+            st.markdown("""
+                <h2 style="
+                    text-align:center;
+                    color:#FFFFFF;
+                    font-weight:800;
+                    text-shadow:2px 2px 8px #000000;
+                ">
+                    Welcome
+                </h2>
+            """, unsafe_allow_html=True)
 
             login_tab, signup_tab = st.tabs(
                 ["🔐 Login", "📝 Sign Up"]
@@ -292,10 +363,7 @@ if not st.session_state.logged_in:
                     key="login_password"
                 )
 
-                if st.button(
-                    "Login",
-                    use_container_width=True
-                ):
+                if st.button("Login", use_container_width=True):
 
                     if login_username and login_password:
 
@@ -403,13 +471,13 @@ if not st.session_state.logged_in:
                             st.error(
                                 "Username already exists. Try another."
                             )
-
-
-# 9. EXPENSE TRACKER DASHBOARD
+# ==========================================================
+# 10. EXPENSE TRACKER DASHBOARD
+# ==========================================================
 
 else:
 
-    # Welcome heading
+    # Welcome Heading
 
     st.title("💰 Personal Expense Tracker")
 
@@ -417,7 +485,7 @@ else:
         f"Welcome, **{st.session_state.username}**!"
     )
 
-    # Logout button
+    # Logout Button
 
     if st.button("Logout 🚪"):
 
@@ -430,7 +498,9 @@ else:
     st.divider()
 
 
-    # 10. ADD NEW EXPENSE
+    # ======================================================
+    # 11. ADD NEW EXPENSE
+    # ======================================================
 
     st.subheader("➕ Add New Expense")
 
@@ -507,7 +577,9 @@ else:
     st.divider()
 
 
-    # 11. FETCH CURRENT USER EXPENSES
+    # ======================================================
+    # 12. FETCH CURRENT USER EXPENSES
+    # ======================================================
 
     with sqlite3.connect(DB_NAME) as conn:
 
@@ -526,7 +598,9 @@ else:
         )).fetchall()
 
 
-    # 12. CONVERT DATA INTO DATAFRAME
+    # ======================================================
+    # 13. CONVERT DATA INTO DATAFRAME
+    # ======================================================
 
     df = pd.DataFrame(
         rows,
@@ -540,14 +614,15 @@ else:
     )
 
 
-    # 13. SUMMARY
+    # ======================================================
+    # 14. EXPENSE SUMMARY
+    # ======================================================
 
     st.subheader("📊 Expense Summary")
 
     if not df.empty:
 
         total_expense = df["Amount"].sum()
-
         total_count = len(df)
 
     else:
@@ -575,7 +650,9 @@ else:
     st.divider()
 
 
-    # 14. CATEGORY-WISE CHART
+    # ======================================================
+    # 15. CATEGORY-WISE CHART
+    # ======================================================
 
     st.subheader("📈 Category-wise Spending")
 
@@ -597,7 +674,9 @@ else:
     st.divider()
 
 
-    # 15. EXPENSE HISTORY
+    # ======================================================
+    # 16. EXPENSE HISTORY
+    # ======================================================
 
     st.subheader("📋 Expense History")
 
@@ -617,7 +696,9 @@ else:
         )
 
 
-        # 16. DELETE EXPENSE
+        # ==================================================
+        # 17. DELETE EXPENSE
+        # ==================================================
 
         st.subheader("🗑️ Delete an Expense")
 
@@ -665,16 +746,22 @@ else:
         )
 
 
-    # 17. FOOTER
+    # ======================================================
+    # 18. FOOTER
+    # ======================================================
 
     st.divider()
 
     st.markdown(
         """
-        <p style="text-align:center; color:#d9a5ff;">
+        <p style="
+            text-align:center;
+            color:#E2B8FF;
+            font-weight:600;
+            text-shadow:1px 1px 4px #000000;
+        ">
             💜 Track Smart • Save More • Grow More
         </p>
         """,
         unsafe_allow_html=True
-    )
-    
+    )                            
