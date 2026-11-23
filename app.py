@@ -35,6 +35,16 @@ if not BG_IMAGE.exists():
 # 4. DATABASE CREATION
 
 def create_database():
+    # NETWORK / DATABASE ERROR HANDLING
+
+ def safe_database_connection():
+
+    return sqlite3.connect(
+        DB_NAME,
+        timeout=15
+    )# NETWORK / DATABASE ERROR HANDLING
+
+
 
     with sqlite3.connect(DB_NAME) as conn:
 
